@@ -13,26 +13,18 @@ type CreateResult struct {
 	commonResult
 }
 
-type CreateGeminiDB struct {
-	Id                  string         `json:"id"`
-	Name                string         `json:"name"`
-	Datastore           Datastore      `json:"datastore"`
-	Created             string         `json:"created"`
-	Status              string         `json:"status"`
-	Region              string         `json:"region"`
-	AvailabilityZone    string         `json:"availability_zone"`
-	VpcId               string         `json:"vpc_id"`
-	SubnetId            string         `json:"subnet_id"`
-	SecurityGroupId     string         `json:"security_group_id"`
-	Mode                string         `json:"mode"`
-	Flavor              []Flavor       `json:"flavor"`
-	BackupStrategy      BackupStrategy `json:"backup_strategy"`
-	EnterpriseProjectId string         `json:"enterprise_project_id"`
-	JobId               string         `json:"job_id"`
-}
-
 func (r CreateResult) Extract() (*CreateGeminiDB, error) {
 	var response CreateGeminiDB
+	err := r.ExtractInto(&response)
+	return &response, err
+}
+
+type GetResult struct {
+	commonResult
+}
+
+func (r GetResult) Extract() (*ListGeminiDBResponse, error) {
+	var response ListGeminiDBResponse
 	err := r.ExtractInto(&response)
 	return &response, err
 }
@@ -56,44 +48,62 @@ type ListGeminiDBResult struct {
 }
 
 type ListGeminiDBResponse struct {
-	Instances  []GeminiDBInstanceResponse  `json:"instances"`
-	TotalCount int                         `json:"total_count"`
+	Instances  []GeminiDBInstanceResponse `json:"instances"`
+	TotalCount int                        `json:"total_count"`
+}
+
+type GeminiDBBase struct {
+	Id              string    `json:"id"`
+	Name            string    `json:"name"`
+	Status          string    `json:"status"`
+	Region          string    `json:"region"`
+	Mode            string    `json:"mode"`
+	DataStore       DataStore `json:"datastore"`
+	Created         string    `json:"created"`
+	VpcId           string    `json:"vpc_id"`
+	SubnetId        string    `json:"subnet_id"`
+	SecurityGroupId string    `json:"security_group_id"`
+
+	EnterpriseProjectId string `json:"enterprise_project_id"`
+	AvailabilityZone    string `json:"availability_zone"`
+}
+
+type BackupStrategyList struct {
+	StartTime string `json:"start_time" required:"true"`
+	KeepDays  int    `json:"keep_days,omitempty"`
+}
+
+type CreateGeminiDB struct {
+	Flavor         []Flavor       `json:"flavor"`
+	JobId          string         `json:"job_id"`
+	BackupStrategy BackupStrategy `json:"backup_strategy"`
+	GeminiDBBase
 }
 
 type GeminiDBInstanceResponse struct {
-	Id                  string            `json:"id"`
-	Name                string            `json:"name"`
-	Status              string            `json:"status"`
-	Port                int               `json:"port"`
-	Mode                string            `json:"mode"`
-	Region              string            `json:"region"`
-	DataStore           Datastore         `json:"datastore"`
-	Engine              string            `json:"engine"`
-	Created             string            `json:"created"`
-	Updated             string            `json:"updated"`
-	DbUserName          string            `json:"db_user_name"`
-	VpcId               string            `json:"vpc_id"`
-	SubnetId            string            `json:"subnet_id"`
-	SecurityGroupId     string            `json:"security_group_id"`
-	BackupStrategy      BackupStrategy    `json:"backup_strategy"`
-	PayMode             string            `json:"pay_mode"`
-	MaintenanceWindow   string            `json:"maintenance_window"`
-	Groups              Groups            `json:"groups"`
-	EnterpriseProjectId string            `json:"enterprise_project_id"`
-	TimeZone            string            `json:"time_zone"`
-	Actions             []string          `json:"actions"`
+	GeminiDBBase
+	Port              string             `json:"port"`
+	Engine            string             `json:"engine"`
+	Updated           string             `json:"updated"`
+	DbUserName        string             `json:"db_user_name"`
+	PayMode           string             `json:"pay_mode"`
+	MaintenanceWindow string             `json:"maintenance_window"`
+	Groups            []Groups           `json:"groups"`
+	TimeZone          string             `json:"time_zone"`
+	Actions           []string           `json:"actions"`
+	BackupStrategy    BackupStrategyList `json:"backup_strategy"`
 }
 
 type Groups struct {
-	Id               string         `json:"id"`
-	Status           string         `json:"status"`
-	Volume           Volume         `json:"volume"`
-	nodes     		 []Nodes 		`json:"nodes"`
+	Id     string  `json:"id"`
+	Status string  `json:"status"`
+	Volume Volume  `json:"volume"`
+	Nodes  []Nodes `json:"nodes"`
 }
 
 type Volume struct {
-	Size	 string 	`json:"size"`
-	used 	 string		`json:"used"`
+	Size string `json:"size"`
+	used string `json:"used"`
 }
 
 type Nodes struct {
@@ -101,7 +111,7 @@ type Nodes struct {
 	Name             string `json:"name"`
 	Status           string `json:"status"`
 	PrivateIp        string `json:"private_ip"`
-	SpecCode 		 string `json:"spec_code"`
+	SpecCode         string `json:"spec_code"`
 	AvailabilityZone string `json:"availability_zone"`
 }
 
